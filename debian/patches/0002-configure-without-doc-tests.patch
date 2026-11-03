@@ -1,0 +1,58 @@
+Description: Only the library's directories are configured and built
+ The packages ship only the library, its header, pkg-config file and
+ autoconf macro. Without doc/ and tests/ in configure.ac and the
+ SUBDIRS, automake does not read the manual or the test makefiles.
+Author: The Blueberry Pie OS Authors
+Forwarded: not-needed
+Last-Update: 2026-11-03
+---
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -16,6 +16,8 @@
+ # You should have received a copy of the GNU Lesser General Public
+ # License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ # SPDX-License-Identifier: LGPL-2.1-or-later
++#
++# Modified 2026-11-03: doc/ and tests/ are not built (LGPL-2.1 section 2(b)).
+ 
+ # Location of the released tarball archives.  This is prefixed by
+ # the variable RELEASE_ARCHIVE in ~/.gnupg-autogen.rc.  For example:
+@@ -41,8 +43,8 @@ doc =
+ endif
+ 
+ 
+-DIST_SUBDIRS = m4 compat mpi cipher random src doc tests
+-SUBDIRS =         compat mpi cipher random src $(doc) tests
++DIST_SUBDIRS = m4 compat mpi cipher random src
++SUBDIRS =         compat mpi cipher random src
+ 
+ EXTRA_DIST = autogen.sh autogen.rc README.GIT LICENSES			   \
+ 	     ChangeLog-2011 build-aux/ChangeLog-2011 doc/ChangeLog-2011	   \
+--- a/configure.ac
++++ b/configure.ac
+@@ -19,6 +19,7 @@
+ # License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ #
+ # Modified 2026-11-03: the version list is the release's, not git's (LGPL-2.1 section 2(b)).
++# Modified 2026-11-03: doc/ and tests/ are not configured (LGPL-2.1 section 2(b)).
+ 
+ # (Process this file with autoconf to produce a configure script.)
+ AC_REVISION($Revision$)
+@@ -4477,17 +4478,12 @@ compat/Makefile
+ mpi/Makefile
+ cipher/Makefile
+ random/Makefile
+-doc/Makefile
+ src/Makefile
+ src/gcrypt.h
+ src/libgcrypt-config
+ src/libgcrypt.pc
+ src/versioninfo.rc
+-tests/Makefile
+ ])
+-AC_CONFIG_FILES([tests/hashtest-6g], [chmod +x tests/hashtest-6g])
+-AC_CONFIG_FILES([tests/hashtest-256g], [chmod +x tests/hashtest-256g])
+-AC_CONFIG_FILES([tests/basic-disable-all-hwf], [chmod +x tests/basic-disable-all-hwf])
+ AC_OUTPUT
+ 
+ 
