@@ -1,0 +1,4 @@
+usr/include/gcrypt.h
+usr/lib/libgcrypt.dylib
+usr/lib/pkgconfig/libgcrypt.pc
+usr/share/aclocal/libgcrypt.m4
