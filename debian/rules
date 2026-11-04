@@ -14,7 +14,9 @@ CONFIGURE_FLAGS := --host=aarch64-apple-darwin --build=$(shell uname -m)-pc-linu
 
 $(OBJ)/.configured:
 	@mkdir -p $(OBJ)
-	cd $(SRCROOT) && autoreconf -fi > /dev/null 2>&1
+	cd $(SRCROOT) && find . -path ./debian -prune -o -print | LC_ALL=C sort > $(OBJ)/tree
+	cd $(SRCROOT) && autoreconf -fi > $(OBJ)/autoreconf.log 2>&1 || { cat $(OBJ)/autoreconf.log; exit 1; }
+	cd $(SRCROOT) && find . -path ./debian -prune -o -print | LC_ALL=C sort | LC_ALL=C comm -13 $(OBJ)/tree - > $(SRCROOT)/debian/autotools-generated
 	cd $(OBJ) && CC=$(CC) CFLAGS="$(BASE_CFLAGS)" LDFLAGS="$(BASE_LDFLAGS)" \
 		AR=$(BINUTILS)-ar RANLIB=$(BINUTILS)-ranlib NM=$(NM) STRIP=$(STRIP) LD=$(BINUTILS)-ld \
 		OTOOL=$(BINUTILS)-otool LIPO=$(BINUTILS)-lipo NMEDIT=$(BINUTILS)-nmedit \
@@ -32,4 +34,11 @@ install: $(OBJ)/.built
 		install-m4dataDATA install-pkgconfigDATA
 	rm -f $(ROOT)/usr/lib/libgcrypt.la
 
-.PHONY: install
+autotools-clean:
+	if [ -f debian/autotools-generated ]; then LC_ALL=C sort -r debian/autotools-generated | while read -r f; do \
+		if [ -d "$$f" ]; then rmdir "$$f" 2>/dev/null || rm -rf "$$f"; else rm -f "$$f"; fi; done; \
+		rm -f debian/autotools-generated; fi
+
+clean: autotools-clean
+
+.PHONY: install autotools-clean
