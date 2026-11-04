@@ -14,9 +14,10 @@ CONFIGURE_FLAGS := --host=aarch64-apple-darwin --build=$(shell uname -m)-pc-linu
 
 $(OBJ)/.configured:
 	@mkdir -p $(OBJ)
-	cd $(SRCROOT) && find . -path ./debian -prune -o -print | LC_ALL=C sort > $(OBJ)/tree
-	cd $(SRCROOT) && autoreconf -fi > $(OBJ)/autoreconf.log 2>&1 || { cat $(OBJ)/autoreconf.log; exit 1; }
-	cd $(SRCROOT) && find . -path ./debian -prune -o -print | LC_ALL=C sort | LC_ALL=C comm -13 $(OBJ)/tree - > $(SRCROOT)/debian/autotools-generated
+	cd $(SRCROOT) && { test -e debian/autotools-tree || find . -path ./debian -prune -o -print | LC_ALL=C sort > debian/autotools-tree; }
+	cd $(SRCROOT) && { rc=0; autoreconf -fi > $(OBJ)/autoreconf.log 2>&1 || rc=$$?; \
+		find . -path ./debian -prune -o -print | LC_ALL=C sort | LC_ALL=C comm -13 debian/autotools-tree - > debian/autotools-generated; \
+		[ $$rc = 0 ] || { cat $(OBJ)/autoreconf.log; exit $$rc; }; }
 	cd $(OBJ) && CC=$(CC) CFLAGS="$(BASE_CFLAGS)" LDFLAGS="$(BASE_LDFLAGS)" \
 		AR=$(BINUTILS)-ar RANLIB=$(BINUTILS)-ranlib NM=$(NM) STRIP=$(STRIP) LD=$(BINUTILS)-ld \
 		OTOOL=$(BINUTILS)-otool LIPO=$(BINUTILS)-lipo NMEDIT=$(BINUTILS)-nmedit \
@@ -38,6 +39,7 @@ autotools-clean:
 	if [ -f debian/autotools-generated ]; then LC_ALL=C sort -r debian/autotools-generated | while read -r f; do \
 		if [ -d "$$f" ]; then rmdir "$$f" 2>/dev/null || rm -rf "$$f"; else rm -f "$$f"; fi; done; \
 		rm -f debian/autotools-generated; fi
+	rm -f debian/autotools-tree
 
 clean: autotools-clean
 
