@@ -1,2 +1,3 @@
 0001-version-from-release.patch
 0002-configure-without-doc-tests.patch
+0003-only-what-the-library-needs.patch

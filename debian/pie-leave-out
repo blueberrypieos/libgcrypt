@@ -1,1 +1,14 @@
+AUTHORS
+COPYING
+COPYING.LIB
+ChangeLog
+INSTALL
+NEWS
+README
+THANKS
 TODO
+build-aux/config.rpath
+build-aux/mdate-sh
+build-aux/texinfo.tex
+m4/ax_cc_for_build.m4
+mkinstalldirs

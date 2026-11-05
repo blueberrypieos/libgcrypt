@@ -1,0 +1,148 @@
+Description: Configure and build only what the Darwin library needs
+ In foreign mode automake needs no AUTHORS, ChangeLog, INSTALL, NEWS,
+ README or COPYING. Without src/versioninfo.rc, configure does not read
+ the Windows resource. Without src/libgcrypt-config, which the packages
+ do not ship, it does not read that template. m4/Makefile only lists the
+ macros for make dist, so it is not configured. Only the gost28147 tables
+ need a compiler for the build machine, and gost28147 is not built, so
+ AX_CC_FOR_BUILD is not used. The package is built without jitterentropy,
+ so rndjent.c includes none of the jitterentropy files. Without them as
+ prerequisites, make does not need them.
+Author: The Blueberry Pie OS Authors
+Forwarded: not-needed
+Last-Update: 2026-11-04
+---
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -18,6 +18,7 @@
+ # SPDX-License-Identifier: LGPL-2.1-or-later
+ #
+ # Modified 2026-11-03: doc/ and tests/ are not built (LGPL-2.1 section 2(b)).
++# Modified 2026-11-04: m4/ is not a subdirectory (LGPL-2.1 section 2(b)).
+ 
+ # Location of the released tarball archives.  This is prefixed by
+ # the variable RELEASE_ARCHIVE in ~/.gnupg-autogen.rc.  For example:
+@@ -43,7 +44,7 @@
+ endif
+ 
+ 
+-DIST_SUBDIRS = m4 compat mpi cipher random src
++DIST_SUBDIRS = compat mpi cipher random src
+ SUBDIRS =         compat mpi cipher random src
+ 
+ EXTRA_DIST = autogen.sh autogen.rc README.GIT LICENSES			   \
+--- a/configure.ac
++++ b/configure.ac
+@@ -20,6 +20,11 @@
+ #
+ # Modified 2026-11-03: the version list is the release's, not git's (LGPL-2.1 section 2(b)).
+ # Modified 2026-11-03: doc/ and tests/ are not configured (LGPL-2.1 section 2(b)).
++# Modified 2026-11-04: automake runs in foreign mode (LGPL-2.1 section 2(b)).
++# Modified 2026-11-04: the Windows version resource is not configured (LGPL-2.1 section 2(b)).
++# Modified 2026-11-04: libgcrypt-config is not made (LGPL-2.1 section 2(b)).
++# Modified 2026-11-04: AX_CC_FOR_BUILD is not used (LGPL-2.1 section 2(b)).
++# Modified 2026-11-04: m4/Makefile is not configured (LGPL-2.1 section 2(b)).
+ 
+ # (Process this file with autoconf to produce a configure script.)
+ AC_REVISION($Revision$)
+@@ -80,7 +85,7 @@
+ 
+ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CONFIG_SRCDIR([src/libgcrypt.vers])
+-AM_INIT_AUTOMAKE([serial-tests dist-bzip2])
++AM_INIT_AUTOMAKE([foreign serial-tests dist-bzip2])
+ AC_CONFIG_HEADERS([config.h])
+ AC_CONFIG_MACRO_DIR([m4])
+ AC_CONFIG_LIBOBJ_DIR([compat])
+@@ -192,9 +197,6 @@
+                           mym4_minor mym4_micro)
+ AC_SUBST(VERSION_NUMBER)
+ 
+-# We need to compile and run a program on the build machine.
+-AX_CC_FOR_BUILD
+-
+ 
+ LT_PREREQ([2.2.6])
+ LT_INIT([win32-dll disable-static])
+@@ -3393,7 +3395,6 @@
+ AC_SUBST(LIBGCRYPT_THREAD_MODULES)
+ 
+ AC_CONFIG_COMMANDS([gcrypt-conf],[[
+-chmod +x src/libgcrypt-config
+ ]],[[
+ prefix=$prefix
+ exec_prefix=$exec_prefix
+@@ -4473,16 +4474,13 @@
+ # And create the files.
+ AC_CONFIG_FILES([
+ Makefile
+-m4/Makefile
+ compat/Makefile
+ mpi/Makefile
+ cipher/Makefile
+ random/Makefile
+ src/Makefile
+ src/gcrypt.h
+-src/libgcrypt-config
+ src/libgcrypt.pc
+-src/versioninfo.rc
+ ])
+ AC_OUTPUT
+ 
+--- a/random/Makefile.am
++++ b/random/Makefile.am
+@@ -15,6 +15,8 @@
+ #
+ # You should have received a copy of the GNU Lesser General Public
+ # License along with this program; if not, see <http://www.gnu.org/licenses/>.
++#
++# Modified 2026-11-04: rndjent.o and rndjent.lo depend only on rndjent.c (LGPL-2.1 section 2(b)).
+ 
+ # Process this file with automake to produce Makefile.in
+ 
+@@ -60,20 +62,8 @@
+ o_flag_munging = cat
+ endif
+ 
+-rndjent.o: $(srcdir)/rndjent.c jitterentropy-base-user.h \
+-           $(srcdir)/jitterentropy-gcd.c $(srcdir)/jitterentropy-gcd.h \
+-           $(srcdir)/jitterentropy-health.c $(srcdir)/jitterentropy-health.h \
+-           $(srcdir)/jitterentropy-noise.c $(srcdir)/jitterentropy-noise.h \
+-           $(srcdir)/jitterentropy-sha3.c $(srcdir)/jitterentropy-sha3.h \
+-           $(srcdir)/jitterentropy-timer.c $(srcdir)/jitterentropy-timer.h \
+-           $(srcdir)/jitterentropy-base.c $(srcdir)/jitterentropy.h
++rndjent.o: $(srcdir)/rndjent.c
+ 	`echo $(COMPILE) -c $(srcdir)/rndjent.c | $(o_flag_munging) `
+ 
+-rndjent.lo: $(srcdir)/rndjent.c jitterentropy-base-user.h \
+-           $(srcdir)/jitterentropy-gcd.c $(srcdir)/jitterentropy-gcd.h \
+-           $(srcdir)/jitterentropy-health.c $(srcdir)/jitterentropy-health.h \
+-           $(srcdir)/jitterentropy-noise.c $(srcdir)/jitterentropy-noise.h \
+-           $(srcdir)/jitterentropy-sha3.c $(srcdir)/jitterentropy-sha3.h \
+-           $(srcdir)/jitterentropy-timer.c $(srcdir)/jitterentropy-timer.h \
+-            $(srcdir)/jitterentropy-base.c $(srcdir)/jitterentropy.h
++rndjent.lo: $(srcdir)/rndjent.c
+ 	`echo $(LTCOMPILE) -c $(srcdir)/rndjent.c | $(o_flag_munging) `
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -16,6 +16,8 @@
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, see <http://www.gnu.org/licenses/>.
++#
++# Modified 2026-11-04: libgcrypt-config is not made (LGPL-2.1 section 2(b)).
+ 
+ 
+ ## Process this file with automake to produce Makefile.in
+@@ -26,11 +28,6 @@
+ EXTRA_DIST = libgcrypt-config.in libgcrypt.m4 libgcrypt.vers \
+              gcrypt.h.in libgcrypt.def libgcrypt.pc.in gen-note-integrity.sh
+ 
+-if USE_GPGRT_CONFIG
+-noinst_SCRIPTS = libgcrypt-config
+-else
+-bin_SCRIPTS = libgcrypt-config
+-endif
+ m4datadir = $(datadir)/aclocal
+ m4data_DATA = libgcrypt.m4
+ nodist_include_HEADERS = gcrypt.h
