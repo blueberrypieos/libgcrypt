@@ -244,6 +244,21 @@ Files: debian/*
 Copyright: 2026 The Blueberry Pie OS Authors
 License: BSD-2-Clause
 
+Files: debian/patches/0001-version-from-release.patch
+ debian/patches/0002-configure-without-doc-tests.patch
+ debian/patches/0003-only-what-the-library-needs.patch
+Copyright: 1991-2018 Free Software Foundation, Inc.
+ 1997-1999 Werner Koch
+ 2012-2026 g10 Code GmbH
+ 2006-2007 NTT (Nippon Telegraph and Telephone Corporation)
+ 2012 Dmitry Kasatkin
+ 2012-2026 Jussi Kivilinna
+ 2013 Dmitry Eremin-Solenikov
+ 2020 Tianjia Zhang
+ 2023-2024 Simon Josefsson
+ 2026 The Blueberry Pie OS Authors
+License: LGPL-2.1-or-later
+
 License: LGPL-2.1-or-later
                    GNU LESSER GENERAL PUBLIC LICENSE
                         Version 2.1, February 1999
